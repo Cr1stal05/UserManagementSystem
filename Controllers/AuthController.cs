@@ -34,12 +34,29 @@ namespace UserManagementSystem.Controllers
             }
         }
 
-        [HttpGet("confirm-email")]
+        [HttpGet("confirm")]
         public async Task<IActionResult> ConfirmEmail([FromQuery] string token)
         {
-            await _authService.ConfirmEmailAsync(token);
-            return Ok("Email confirmed successfully.");
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.EmailConfirmationToken == token);
+
+            if (user == null)
+                return BadRequest("Invalid token");
+
+            // IMPORTANT: blocked user stays blocked
+            if (user.Status == UserStatus.Blocked)
+                return BadRequest("User is blocked");
+
+            if (user.Status == UserStatus.Unverified)
+            {
+                user.Status = UserStatus.Active;
+                user.EmailConfirmationToken = null;
+                await _context.SaveChangesAsync();
+            }
+
+            return Ok("Email confirmed successfully");
         }
+
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
