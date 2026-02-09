@@ -28,6 +28,10 @@ namespace UserManagementSystem.Models
         public UserStatus Status { get; set; }
 
         public DateTime? LastActivityTime { get; set; }
+
+        public string? EmailConfirmationToken { get; set; }
+
+        public bool IsEmailConfirmed { get; set; } = false;
     }
 
     public enum UserStatus

@@ -34,6 +34,13 @@ namespace UserManagementSystem.Controllers
             }
         }
 
+        [HttpGet("confirm-email")]
+        public async Task<IActionResult> ConfirmEmail([FromQuery] string token)
+        {
+            await _authService.ConfirmEmailAsync(token);
+            return Ok("Email confirmed successfully.");
+        }
+
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {

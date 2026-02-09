@@ -14,6 +14,7 @@ namespace UserManagementSystem.Services
     public interface IAuthService
     {
         Task<string> Register(RegisterRequest request);
+        Task ConfirmEmailAsync(string token);
         Task<string> Login(LoginRequest request);
         string GenerateJwtToken(User user);
     }
@@ -36,8 +37,7 @@ namespace UserManagementSystem.Services
 
         public async Task<string> Register(RegisterRequest request)
         {
-            // Note: Мы НЕ проверяем уникальность email здесь
-            // База данных сама сделает это через уникальный индекс
+            var confirmationToken = Guid.NewGuid().ToString();
 
             var user = new User
             {
@@ -47,8 +47,11 @@ namespace UserManagementSystem.Services
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
                 RegistrationTime = DateTime.UtcNow,
                 LastLoginTime = DateTime.UtcNow,
+                LastActivityTime = DateTime.UtcNow,
                 Status = UserStatus.Unverified,
-                LastActivityTime = DateTime.UtcNow
+
+                // IMPORTANT
+                EmailConfirmationToken = confirmationToken
             };
 
             try
@@ -56,20 +59,44 @@ namespace UserManagementSystem.Services
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
 
-                // Отправка email асинхронно
-                //_ = SendVerificationEmailAsync(user.Email, user.Id);////////////////////////////////
+                // IMPORTANT: async email sending
+                _ = _emailService.SendConfirmationEmailAsync(
+                    user.Email,
+                    confirmationToken
+                );
 
                 return "Registration successful. Please check your email for verification.";
             }
             catch (DbUpdateException ex)
             {
-                // Important: Обработка нарушения уникальности от БД
-                if (ex.InnerException is PostgresException pgEx && pgEx.SqlState == "23505")
+                // IMPORTANT: uniqueness guaranteed by DB
+                if (ex.InnerException is PostgresException pgEx &&
+                    pgEx.SqlState == "23505")
                 {
                     throw new ApplicationException("Email already exists.");
                 }
+
                 throw;
             }
+        }
+
+        public async Task ConfirmEmailAsync(string token)
+        {
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.EmailConfirmationToken == token);
+
+            if (user == null)
+                throw new ApplicationException("Invalid confirmation token.");
+
+            if (user.Status != UserStatus.Blocked)
+            {
+                user.Status = UserStatus.Active;
+            }
+
+            // IMPORTANT
+            user.EmailConfirmationToken = null;
+
+            await _context.SaveChangesAsync();
         }
 
         public async Task<string> Login(LoginRequest request)

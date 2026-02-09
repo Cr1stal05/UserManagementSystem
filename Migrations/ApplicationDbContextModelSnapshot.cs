@@ -33,6 +33,12 @@ namespace UserManagementSystem.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("EmailConfirmationToken")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsEmailConfirmed")
+                        .HasColumnType("boolean");
+
                     b.Property<DateTime?>("LastActivityTime")
                         .HasColumnType("timestamp with time zone");
 
