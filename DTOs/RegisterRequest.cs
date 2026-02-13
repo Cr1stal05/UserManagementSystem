@@ -9,7 +9,7 @@ namespace UserManagementSystem.DTOs
         public string Email { get; set; }
 
         [Required]
-        [MinLength(1)] // Пароль может быть от 1 символа
+        [MinLength(1)]
         public string Password { get; set; }
 
         [Required]

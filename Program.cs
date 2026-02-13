@@ -8,14 +8,11 @@ using UserManagementSystem.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllers();
 
-// Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// CORS (если фронт теперь в wwwroot — он не нужен, но оставим)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("ReactApp",
@@ -26,15 +23,12 @@ builder.Services.AddCors(options =>
             .AllowCredentials());
 });
 
-// DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Scoped services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 
-// JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var key = Encoding.ASCII.GetBytes(jwtSettings["Secret"]);
 
@@ -66,7 +60,6 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 
-// Swagger
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -75,24 +68,19 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Статика — ВСЕГДА
 app.UseStaticFiles();
 
 app.UseRouting();
 
-// CORS
 app.UseCors("ReactApp");
 
-// Аутентификация и авторизация
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Проверка пользователя
 app.UseMiddleware<UserCheckMiddleware>();
 
 app.MapControllers();
 
-// 🔥 SPA fallback — ВАЖНО: ПОСЛЕ MapControllers
 app.MapFallbackToFile("index.html");
 
 app.Run();

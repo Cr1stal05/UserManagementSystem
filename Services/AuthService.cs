@@ -50,7 +50,6 @@ namespace UserManagementSystem.Services
                 LastActivityTime = DateTime.UtcNow,
                 Status = UserStatus.Unverified,
 
-                // IMPORTANT
                 EmailConfirmationToken = confirmationToken
             };
 
@@ -59,7 +58,6 @@ namespace UserManagementSystem.Services
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
 
-                // IMPORTANT: async email sending
                 _ = _emailService.SendConfirmationEmailAsync(
                     user.Email,
                     confirmationToken
@@ -69,7 +67,6 @@ namespace UserManagementSystem.Services
             }
             catch (DbUpdateException ex)
             {
-                // IMPORTANT: uniqueness guaranteed by DB
                 if (ex.InnerException is PostgresException pgEx &&
                     pgEx.SqlState == "23505")
                 {
@@ -93,7 +90,6 @@ namespace UserManagementSystem.Services
                 user.Status = UserStatus.Active;
             }
 
-            // IMPORTANT
             user.EmailConfirmationToken = null;
 
             await _context.SaveChangesAsync();
@@ -109,13 +105,11 @@ namespace UserManagementSystem.Services
                 throw new ApplicationException("Invalid credentials.");
             }
 
-            // Important: Проверка блокировки
             if (user.Status == UserStatus.Blocked)
             {
                 throw new ApplicationException("Account is blocked.");
             }
 
-            // Обновление времени последнего входа
             user.LastLoginTime = DateTime.UtcNow;
             user.LastActivityTime = DateTime.UtcNow;
             await _context.SaveChangesAsync();

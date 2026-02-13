@@ -7,7 +7,7 @@ namespace UserManagementSystem.Middleware
     public class UserCheckMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly IServiceScopeFactory _serviceScopeFactory;  // ← используйте IServiceScopeFactory
+        private readonly IServiceScopeFactory _serviceScopeFactory;
 
         public UserCheckMiddleware(RequestDelegate next, IServiceScopeFactory serviceScopeFactory)
         {
@@ -19,7 +19,6 @@ namespace UserManagementSystem.Middleware
         {
             var path = context.Request.Path;
 
-            // Пропускаем публичные endpoints
             if (path.StartsWithSegments("/api/auth") ||
                 path.StartsWithSegments("/swagger") ||
                 path == "/")
@@ -36,7 +35,6 @@ namespace UserManagementSystem.Middleware
                 return;
             }
 
-            // Important: Создаем scope для DbContext
             using var scope = _serviceScopeFactory.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
@@ -49,7 +47,6 @@ namespace UserManagementSystem.Middleware
                 return;
             }
 
-            // Обновление времени активности
             user.LastActivityTime = DateTime.UtcNow;
             await dbContext.SaveChangesAsync();
 

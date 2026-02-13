@@ -27,7 +27,6 @@ namespace UserManagementSystem.Controllers
             [FromQuery] string sortBy = "lastLoginTime",
             [FromQuery] string sortOrder = "desc")
         {
-            // Important: Сортировка по умолчанию по LastLoginTime
             IQueryable<User> query = _context.Users;
 
             query = sortBy.ToLower() switch

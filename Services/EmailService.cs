@@ -12,7 +12,6 @@ namespace UserManagementSystem.Services
             _configuration = configuration;
         }
 
-        // IMPORTANT: универсальный метод отправки email
         public async Task SendEmailAsync(string to, string subject, string body)
         {
             var email = new MimeMessage();
@@ -48,12 +47,10 @@ namespace UserManagementSystem.Services
             }
             catch (Exception ex)
             {
-                // IMPORTANT: email errors must not break registration
                 Console.WriteLine($"Email sending failed: {ex.Message}");
             }
         }
 
-        // IMPORTANT: email verification logic
         public async Task SendConfirmationEmailAsync(string email, string token)
         {
             var baseUrl = _configuration["App:BaseUrl"];

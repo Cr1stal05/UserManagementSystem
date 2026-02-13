@@ -43,7 +43,6 @@ namespace UserManagementSystem.Controllers
             if (user == null)
                 return BadRequest("Invalid token");
 
-            // IMPORTANT: blocked user stays blocked
             if (user.Status == UserStatus.Blocked)
                 return BadRequest("User is blocked");
 
